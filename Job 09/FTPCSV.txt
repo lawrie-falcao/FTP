@@ -1,0 +1,27 @@
+import csv
+import subprocess
+
+def create_ftp_user(username, password, sudo_access):
+   
+    subprocess.run(['useradd', '-m', '-s', '/bin/bash', username])
+    subprocess.run(['echo', f'{username}:{password}', '|', 'chpasswd'])
+
+    subprocess.run(['usermod', '-a', '-G', 'ftp', username])
+
+    if sudo_access:
+        subprocess.run(['usermod', '-a', '-G', 'sudo', username])
+
+    subprocess.run(['chown', '-R', f'{username}:{username}', f'/home/{username}'])
+
+csv_file = 'utilisateurs_ftp.csv'
+
+with open(csv_file, 'r') as file:
+    reader = csv.reader(file)
+    next(reader)  # Ignorer l'en-tête du fichier CSV
+
+    for row in reader:
+        username = row[0]
+        password = row[1]
+        sudo_access = bool(row[2])
+
+        create_ftp_user(username, password, sudo_access)
